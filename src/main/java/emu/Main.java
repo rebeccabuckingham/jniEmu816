@@ -14,6 +14,7 @@ public class Main {
 	//public MainScreen mainScreen;
 	public Bus bus;
 	public ConsoleDevice consoleDevice;
+	TerminalDevice terminalDevice;
 
 	// methods required by lib65816
 	public short readMemory(int address, long timestamp) {
@@ -35,7 +36,7 @@ public class Main {
 //		});
 	}
 
-	public Main() {
+	public Main() throws Exception {
 		bus = new Bus();
 
 		Ram highCode = new Ram("highCode", 0x010000, 0x8000);
@@ -54,8 +55,10 @@ public class Main {
 		Arrays.fill(lowData.memory, (short) 0x42);
 		bus.add(lowData);
 
-		consoleDevice = new ConsoleDevice((int) 0xD000, 4);
-		bus.add(consoleDevice);
+		//consoleDevice = new ConsoleDevice((int) 0xD000, 4);
+		//bus.add(consoleDevice);
+		terminalDevice = new TerminalDevice((int) 0xD000, 4);
+		bus.add(terminalDevice);
 
 		Ram stack = new Ram("stack", 0x00C800, 0x0800);
 		Arrays.fill(stack.memory, (short) 0x00);
@@ -65,7 +68,7 @@ public class Main {
 		Arrays.fill(base.memory, (short) 0x42);
 		bus.add(base);
 
-		consoleDevice.showGUI(consoleDevice);
+		//consoleDevice.showGUI(consoleDevice);
 
 	}
 
@@ -80,11 +83,20 @@ public class Main {
 			PgzLoader.loadPgz("/Users/rebecca/Developer/calypsi-minimal-example/test.pgz", m.bus);
 			m.initCpu();
 
-			System.out.println("waiting 3 seconds for gui to be ready...");
-			try {
-				Thread.sleep(3000);
-			} catch (Exception e) {
+//			System.out.println("waiting 3 seconds for gui to be ready...");
+//			try {
+//				Thread.sleep(3000);
+//			} catch (Exception e) {
+//
+//			}
+			m.terminalDevice.runServer();
+			while (! m.terminalDevice.connected()) {
+				System.out.println("waiting for terminal device to connect over telnet...");
+				try {
+					Thread.sleep(10000);
+				} catch (Exception e) {
 
+				}
 			}
 
 			System.out.println("starting cpu...");
