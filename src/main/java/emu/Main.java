@@ -71,33 +71,26 @@ public class Main {
 
 	public static void main(String[] args) throws Exception {
 		Main m = new Main();
-		PgzLoader.loadPgz("/Users/rebecca/Developer/calypsi-minimal-example/test.pgz", m.bus);
-		m.initCpu();
 
-		System.out.println("waiting 3 seconds for gui to be ready...");
-		try {
-			Thread.sleep(3000);
-		} catch (Exception e) {
+		if (args.length == 1 && args[0].equalsIgnoreCase("--test-terminal")) {
+			// turn console echo and noCpu modes on so we can just test the terminal
+			m.consoleDevice.echoMode = true;
+			m.consoleDevice.noCpuMode = true;
+		} else {
+			PgzLoader.loadPgz("/Users/rebecca/Developer/calypsi-minimal-example/test.pgz", m.bus);
+			m.initCpu();
 
+			System.out.println("waiting 3 seconds for gui to be ready...");
+			try {
+				Thread.sleep(3000);
+			} catch (Exception e) {
+
+			}
+
+			System.out.println("starting cpu...");
+			m.runCpu();
 		}
 
-		System.out.println("starting cpu...");
-		m.runCpu();
-
-		System.out.println("probably won't see this until after everything exits.");
-
-//		System.out.println("what's on the keyStack...");
-//		m.consoleDevice.getKeyStack().forEach(c -> {
-//			if (c < ' ')
-//				System.out.printf("char: %02x\n", (int) c);
-//			else
-//				System.out.println("char: '" + c + "'");
-//		});
-//
-//		System.out.println("keys available: " + m.bus.readMemory(0xD000));
-//		while (m.bus.readMemory(0xD000) != 0) {
-//			System.out.println("char read: " + m.bus.readMemory(0xD001));
-//		}
 
 	}
 

@@ -95,5 +95,3 @@ JNIEXPORT void JNICALL Java_emu_Main_initCpu(JNIEnv *env, jobject obj) {
 
 	return;
 }
-
-// todo: need an actual JNIEXPORT 'CPU run' method, probably should be called from Java thread

@@ -20,13 +20,13 @@ public class ConsoleKeyHandler implements KeyListener, ActionListener {
 		//System.out.println("actionPerformed: " + actionEvent.toString());
 	}
 
-	/** Handle the key typed event from the text field. */
 	public void keyTyped(KeyEvent e) {
-		//System.out.println("KEY TYPED: " + e.toString());
-		consoleDevice.addKeyPressed(e.getKeyChar());
+		if (!consoleDevice.noCpuMode)
+			consoleDevice.addKeyPressed(e.getKeyChar());
+
+		consoleDevice.handleKeyEcho(e.getKeyChar());
 	}
 
-	/** Handle the key pressed event from the text field. */
 	public void keyPressed(KeyEvent e) {
 		// shift + F13: dump to stderr the contents of the buffer
 		if (e.getKeyCode() == 61440 && e.getModifiersEx() == 64) {
@@ -49,9 +49,10 @@ public class ConsoleKeyHandler implements KeyListener, ActionListener {
 //		System.out.println("KEY PRESSED: " + e.toString());
 //		System.out.println("modifiers: " + e.getModifiersEx());
 //		System.out.println("keyCode:   " + e.getKeyCode());
+
+
 	}
 
-	/** Handle the key released event from the text field. */
 	public void keyReleased(KeyEvent e) {
 	//	System.out.println("KEY RELEASED: " + e.toString());
 	}

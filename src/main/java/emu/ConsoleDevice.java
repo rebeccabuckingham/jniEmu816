@@ -45,6 +45,8 @@ public class ConsoleDevice extends BusDeviceBase {
 
 	public Stack<Character> getKeyStack() { return keysPressed; }
 
+	public boolean echoMode = false;
+	public boolean noCpuMode = false;
 
 	/**
 	 * readMemory() in this case is how the emulated machine gets input from the keyboard
@@ -116,7 +118,7 @@ public class ConsoleDevice extends BusDeviceBase {
 		display.setEditable(false); // set textArea non-editable
 		display.setFont(DEFAULT_FONT);
 		display.setAutoscrolls(true);
-		display.setBackground(Color.BLACK);
+		//display.setBackground(Color.BLACK);
 		display.setCaretColor(Color.WHITE);
 
 
@@ -133,14 +135,12 @@ public class ConsoleDevice extends BusDeviceBase {
 		frame.pack();
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
+	}
 
-		// preload the keyboard buffer as a test
-//		keysPressed.add((char) 0x0a);
-//		keysPressed.add('O');
-//		keysPressed.add('L');
-//		keysPressed.add('L');
-//		keysPressed.add('E');
-//		keysPressed.add('H');
+	public void handleKeyEcho(char c) {
+		if (echoMode) {
+			print(String.valueOf(c));
+		}
 	}
 
 	public void showGUI(final ConsoleDevice consoleDevice) {
