@@ -1,0 +1,14 @@
+generating "both halves" of JNI stuff
+
+1) create the native signatures in your java class, i.e. 'emu.Main':
+  public native void print();
+
+2) run the header file generating tool:
+  javac ./src/main/java/emu/Main.java -h ./src/lib65816/c
+
+3) include the header in your c file
+4) implement the methods contained in the header.
+
+5) when necessary, to get signatures for java methods, not the native ones, do:
+  javap -s ./build/classes/java/main/emu/Main.class
+
