@@ -2,6 +2,7 @@ package emu;
 
 import emu.gui.ConsoleKeyHandler;
 import emu.gui.SmartScroller;
+import emu.ui.Console;
 
 import javax.swing.*;
 import javax.swing.border.EtchedBorder;
@@ -24,8 +25,11 @@ public class ConsoleDevice extends BusDeviceBase {
 
 	private static final int DEFAULT_FONT_SIZE = 16;
 	private static final Font DEFAULT_FONT = new Font(Font.MONOSPACED, Font.PLAIN, DEFAULT_FONT_SIZE);
+	private static final int CONSOLE_BORDER_WIDTH = 10;
 
-	private final Stack<Character> keysPressed = new Stack<>();
+	public Console console = null;
+
+	public final Stack<Character> keysPressed = new Stack<>();
 
 	public ConsoleDevice(int startAddress, int size) {
 		super("Console (" + BusDeviceBase.addr24(startAddress) + "," + BusDeviceBase.addr16(size) + ")", startAddress, size);
@@ -43,8 +47,6 @@ public class ConsoleDevice extends BusDeviceBase {
 		return keysPressed.size() > 0;
 	}
 
-	public Stack<Character> getKeyStack() { return keysPressed; }
-
 	public boolean echoMode = false;
 	public boolean noCpuMode = false;
 
@@ -55,9 +57,6 @@ public class ConsoleDevice extends BusDeviceBase {
 	public short readMemory(int address) {
 		int ea = effectiveAddress(address);
 		short value = 0;
-
-		if (! keysPressed.isEmpty())
-			System.out.println("readMemory stack empty? " + keysPressed.isEmpty());
 
 		if (ea == CHAR_READY_FLAG) {
 			value = (short) (charAvailable() ? 1 : 0);
@@ -72,7 +71,7 @@ public class ConsoleDevice extends BusDeviceBase {
 						System.out.println("char: '" + c + "'");
 				});
 
-				value = (short) (getKeyStack().peek() & 0xFF);
+				value = (short) (keysPressed.peek() & 0xFF);
 			}
 		}
 
@@ -84,6 +83,7 @@ public class ConsoleDevice extends BusDeviceBase {
 
 	/**
 	 * writeMemory() is how the emulated machine writes to the screen
+	 * and how it tells the console it read a character
 	 */
 
 	@Override
@@ -92,54 +92,29 @@ public class ConsoleDevice extends BusDeviceBase {
 		char c = (char) value;
 
 		if (ea == CHAR_OUT) {
-			print(String.valueOf(c));
+			console.print(String.valueOf(c));
+			console.repaint();
 		} else if (ea == CHARGOT) {
 			// can dispose of character now
 			keysPressed.pop();
 		}
 	}
 
-	JTextArea display = null;
-
-	public void print(String str) {
-		if (display == null) {
-			System.err.println("display.print(): display isn't available yet!");
-		} else {
-			display.append(str);
-		}
-	}
-
 	public void createAndShowGUI(final ConsoleDevice consoleDevice) {
-		JPanel middlePanel = new JPanel();
-		middlePanel.setBorder(new TitledBorder(new EtchedBorder(), "Display Area"));
+		console = new Console(80, 25, DEFAULT_FONT, false);
 
-		// create the middle panel components
-		display = new JTextArea(25, 80);
-		display.setEditable(false); // set textArea non-editable
-		display.setFont(DEFAULT_FONT);
-		display.setAutoscrolls(true);
-		//display.setBackground(Color.BLACK);
-		display.setCaretColor(Color.WHITE);
-
-
-		JScrollPane scroll = new JScrollPane(display);
-		new SmartScroller(scroll);
-		scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-
-		middlePanel.add(scroll);
-
-		JFrame frame = new JFrame("I/O Window");
-		display.addKeyListener(new ConsoleKeyHandler(consoleDevice));
+		JFrame frame = new JFrame("Console");
+		frame.addKeyListener(new ConsoleKeyHandler(this));
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.add(middlePanel);
+		frame.getContentPane().add(console, BorderLayout.CENTER);
 		frame.pack();
-		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
 	}
 
 	public void handleKeyEcho(char c) {
 		if (echoMode) {
-			print(String.valueOf(c));
+			console.print(String.valueOf(c));
+			console.repaint();
 		}
 	}
 
@@ -150,6 +125,5 @@ public class ConsoleDevice extends BusDeviceBase {
 			}
 		});
 	}
-
 
 }

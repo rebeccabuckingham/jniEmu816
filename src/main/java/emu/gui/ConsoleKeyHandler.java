@@ -31,7 +31,7 @@ public class ConsoleKeyHandler implements KeyListener, ActionListener {
 		// shift + F13: dump to stderr the contents of the buffer
 		if (e.getKeyCode() == 61440 && e.getModifiersEx() == 64) {
 			System.out.println("consoleDevice.charAvailable(): " + consoleDevice.charAvailable());
-			Stack<Character> keyStack = consoleDevice.getKeyStack();
+			Stack<Character> keyStack = consoleDevice.keysPressed;
 			keyStack.forEach(c -> {
 				if (c < ' ')
 					System.out.printf("char: %02x\n", (int) c);
@@ -43,14 +43,8 @@ public class ConsoleKeyHandler implements KeyListener, ActionListener {
 
 		// alt + F13: empty the buffer
 		if (e.getKeyCode() == 61440 && e.getModifiersEx() == 512) {
-			consoleDevice.getKeyStack().clear();
+			consoleDevice.keysPressed.clear();
 		}
-
-//		System.out.println("KEY PRESSED: " + e.toString());
-//		System.out.println("modifiers: " + e.getModifiersEx());
-//		System.out.println("keyCode:   " + e.getKeyCode());
-
-
 	}
 
 	public void keyReleased(KeyEvent e) {

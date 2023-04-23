@@ -28,11 +28,6 @@ public class Main {
 
 	// called from bridge.c Java_emu_Main_initCpu()
 	public void sayHelloJava() {
-//		javax.swing.SwingUtilities.invokeLater(new Runnable() {
-//				public void run() {
-//					MainScreen.getConsole().println("Hello from sayHelloJava()!");
-//				}
-//		});
 	}
 
 	public Main() {
@@ -66,7 +61,6 @@ public class Main {
 		bus.add(base);
 
 		consoleDevice.showGUI(consoleDevice);
-
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -90,8 +84,6 @@ public class Main {
 			System.out.println("starting cpu...");
 			m.runCpu();
 		}
-
-
 	}
 
 
