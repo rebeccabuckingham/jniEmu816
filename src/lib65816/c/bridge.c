@@ -19,23 +19,15 @@ JNIEXPORT void JNICALL Java_emu_Main_print(JNIEnv *env, jobject obj) {
 }
 
 void EMUL_hardwareUpdate(word32 timestamp) {
-  //(*env)->CallStaticVoidMethod(env, cls, hardwareUpdateMid, timestamp);
   (*mainEnv)->CallVoidMethod(mainEnv, mainObject, hardwareUpdateMid, timestamp);
 }
 
 byte MEM_readMem(word32 address, word32 timestamp, word32 emulFlags) {
-  //return (byte) (*env)->CallStaticShortMethod(env, mainClass, readMemMid, address, timestamp);
   byte b = (byte) (*mainEnv)->CallShortMethod(mainEnv, mainObject, readMemMid, address, timestamp);
-
-  if (address == 0xD001) {
-    printf("*** MEM_readMEM(0xD001) returning: %d\n", (int) b);
-  }
-
   return b;
 }
 
 void MEM_writeMem(word32 address, byte b, word32 timestamp) {
-  //(*env)->CallStaticVoidMethod(env, mainClass, writeMemMid, address, b, timestamp);
   (*mainEnv)->CallVoidMethod(mainEnv, mainObject, writeMemMid, address, b, timestamp);
 }
 

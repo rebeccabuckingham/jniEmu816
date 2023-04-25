@@ -12,5 +12,5 @@ JAVA_HOME=/Library/Java/JavaVirtualMachines/arm64-zulu-8.jdk/Contents/Home
 echo   libPath: "$libPath"
 echo classPath: "$classPath"
 
-$JAVA_HOME/jre/bin/java $jvmArgs -cp $classPath emu.Main $*
- 
+$JAVA_HOME/jre/bin/java $jvmArgs -cp $classPath emu.Main /Users/rebecca/Developer/calypsi-minimal-example/test.pgz 
+

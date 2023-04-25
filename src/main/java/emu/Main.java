@@ -64,14 +64,14 @@ public class Main {
 	}
 
 	public static void main(String[] args) throws Exception {
-		Main m = new Main();
-
-		if (args.length == 1 && args[0].equalsIgnoreCase("--test-terminal")) {
-			// turn console echo and noCpu modes on so we can just test the terminal
-			m.consoleDevice.echoMode = true;
-			m.consoleDevice.noCpuMode = true;
+		if (args.length < 1) {
+			System.out.println("need to specify the file to load and run.");
 		} else {
-			PgzLoader.loadPgz("/Users/rebecca/Developer/calypsi-minimal-example/test.pgz", m.bus);
+			System.out.println("will load and run: " + args[0]);
+
+			Main m = new Main();
+
+			PgzLoader.loadPgz(args[0], m.bus);
 			m.initCpu();
 
 			System.out.println("waiting 3 seconds for gui to be ready...");

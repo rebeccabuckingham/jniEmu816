@@ -1,13 +1,9 @@
 package emu;
 
 import emu.gui.ConsoleKeyHandler;
-import emu.gui.SmartScroller;
 import emu.ui.Console;
 
 import javax.swing.*;
-import javax.swing.border.EtchedBorder;
-import javax.swing.border.TitledBorder;
-import javax.swing.text.DefaultStyledDocument;
 import java.awt.*;
 import java.util.Stack;
 
@@ -64,19 +60,9 @@ public class ConsoleDevice extends BusDeviceBase {
 			if (!charAvailable())
 				value = (short) -1;
 			else {
-				keysPressed.forEach(c -> {
-					if (c < ' ')
-						System.out.printf("char: %02x\n", (int) c);
-					else
-						System.out.println("char: '" + c + "'");
-				});
-
 				value = (short) (keysPressed.peek() & 0xFF);
 			}
 		}
-
-		if ( (ea == 0 && value != 0) || (ea == 1 && value != -1))
-			System.out.printf("readMemory ea:%d, value:%d\n", ea, value);
 
 		return value;
 	}
