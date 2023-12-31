@@ -150,6 +150,26 @@ byte    cpu_cycle_table[1300] =
 };
 #endif
 
+void CPU_single_step_init(void) {
+  cpu_cycle_count = 0;
+  E = 1;
+  F_setM(1);
+  F_setX(1);
+  CPU_modeSwitch();
+}
+
+void CPU_single_step(void)
+{
+    int opcode;
+
+    // fetch and execute the opcode
+    opcode = M_READ_OPCODE(PC.A);
+    PC.W.PC++;
+    (**cpu_curr_opcode_table[opcode])();
+
+    // TODO: how do we report the status back?
+}
+
 void CPU_run(void)
 {
     word32  last_update,next_update;

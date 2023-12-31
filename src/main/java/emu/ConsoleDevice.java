@@ -78,7 +78,11 @@ public class ConsoleDevice extends BusDeviceBase {
 		char c = (char) value;
 
 		if (ea == CHAR_OUT) {
-			console.print(String.valueOf(c));
+			if (c == '\n')
+				console.println("");
+			else
+				console.print(String.valueOf(c));
+
 			console.repaint();
 		} else if (ea == CHARGOT) {
 			// can dispose of character now

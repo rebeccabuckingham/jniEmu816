@@ -2,7 +2,7 @@
 
 ./gradlew clean build
 
-basePath=/Users/rebecca/jniEmu816
+basePath=/Users/rebecca/Developer/jniEmu816
 libPath=$basePath/build/libs/lib65816/shared
 jvmArgs=-Djava.library.path=$libPath
 classPath=$basePath/build/classes/java/main

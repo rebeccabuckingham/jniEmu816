@@ -208,6 +208,9 @@ void CPU_modeSwitch(void);
 
 void CPU_debug(void);
 
+void CPU_single_step_init(void);
+void CPU_single_step(void);
+
 
 /* These are used by the various macros above, so make sure that we
  * declare them for type safety purposes!  Thanks to fabys for these on
