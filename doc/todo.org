@@ -1,0 +1,23 @@
+Changes to make to bring VERA into the emulator:
+
+* TODO [A] Remove all Swing components from jniEmu816
+    - console, etc.
+* TODO [D] Create debugging interface via Socket
+    - connect to port 6502 to control the emulator.
+* TODO [C] Bring VERA in from bexemu:
+    - add all C files from vera
+    - make sure gradle builds the library and properly includes vera
+    - otherwise should just work
+* TODO [B] Changes to bridge.h / bridge.c:
+** new: memory_allocate(name, start_address, length)
+    - for emulated RAM/ROM
+    - need a linked list with RAM/ROM objects.
+    - needs to be exposed to the Java side.
+** EMUL_hardwareUpdate()
+    - call vera update (60 hz)
+    - do other hardware updates
+    - check for control signals from Java
+** MEM_readMem() & MEM_writeMem()
+    - read/write calls in VERA's address space have to go directly to VERA.
+    - RAM/ROM needs to be specified on the C side, not Java, so RAM/ROM is fast.
+    - read/write calls outside of VERA & RAM/ROM get delegated to the java side.

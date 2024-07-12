@@ -18,6 +18,11 @@ JNIEXPORT void JNICALL Java_emu_Main_print(JNIEnv *env, jobject obj) {
 	return;
 }
 
+// TODO these three functions have to change to support both VERA and localized memory.
+//      (1) read/write calls in VERA's address space will have to go directly to VERA
+//      (2) both the Java & C sides have to be updated to allow RAM/ROM to be created via malloc().
+//      (3) read/write calls outside of VERA & the new RAM/ROM emulation have to get delegated to
+//          the java side.
 void EMUL_hardwareUpdate(word32 timestamp) {
   (*mainEnv)->CallVoidMethod(mainEnv, mainObject, hardwareUpdateMid, timestamp);
 }
