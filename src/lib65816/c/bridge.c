@@ -31,23 +31,25 @@ void MEM_writeMem(word32 address, byte b, word32 timestamp) {
   (*mainEnv)->CallVoidMethod(mainEnv, mainObject, writeMemMid, address, b, timestamp);
 }
 
-void EMUL_handleWDM(byte opcode, word32 timestamp) { }
+void EMUL_handleWDM(byte opcode, word32 timestamp) {
+    printf("WDM: code = %02x\n", opcode);
+}
 
 JNIEXPORT void JNICALL Java_emu_Main_runCpu(JNIEnv *env, jobject obj) {
   CPU_run();
 }
 
-JNIEXPORT void JNICALL Java_emu_Main_initCpu(JNIEnv *env, jobject obj) {
+JNIEXPORT void JNICALL Java_emu_Main_initCpu(JNIEnv *env, jobject obj, jint address) {
   mainObject = obj;
   mainEnv = env;
 
   printf("start of Java_emu_Main_initCpu()\n");
 
-	mainClass = (*env)->FindClass(env, "emu/Main");
-	if (mainClass == NULL) {
-		printf("Failed to find Main class\n");
-		return;
-	}
+    mainClass = (*env)->FindClass(env, "emu/Main");
+    if (mainClass == NULL) {
+        printf("Failed to find Main class\n");
+        return;
+    }
 
   jmethodID mid = (*env)->GetMethodID(env, mainClass, "sayHelloJava", "()V");
   if (mid == NULL) {
@@ -82,6 +84,12 @@ JNIEXPORT void JNICALL Java_emu_Main_initCpu(JNIEnv *env, jobject obj) {
   CPU_setUpdatePeriod(10000);
   CPU_setTrace(0);
   CPU_reset();
+
+  if (address != 0) {
+    printf("will set pbr/pc to: %06x.\n", address);
+    // TODO make the change in cpu.h & cpu.c: add method to set pbr/pc.
+    CPU_setRunAddress(address);
+  }
 
   printf("end of Java_emu_Main_initCpu()\n");
 

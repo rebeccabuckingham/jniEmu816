@@ -62,3 +62,9 @@ void CPU_clearIRQ( word32 m )
 {
 	cpu_irq &= ~m;
 }
+
+void CPU_setRunAddress(word32 address)
+{
+    PC.W.PC = address & 0xffff;
+    PC.B.PB = (address >> 16) & 0xff;
+}

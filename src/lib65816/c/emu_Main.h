@@ -18,10 +18,10 @@ JNIEXPORT void JNICALL Java_emu_Main_print
 /*
  * Class:     emu_Main
  * Method:    initCpu
- * Signature: ()V
+ * Signature: (I)V
  */
 JNIEXPORT void JNICALL Java_emu_Main_initCpu
-  (JNIEnv *, jobject);
+  (JNIEnv *, jobject, jint);
 
 /*
  * Class:     emu_Main

@@ -211,7 +211,6 @@ void CPU_debug(void);
 void CPU_single_step_init(void);
 void CPU_single_step(void);
 
-
 /* These are used by the various macros above, so make sure that we
  * declare them for type safety purposes!  Thanks to fabys for these on
  * the 6502.org forum.
@@ -224,6 +223,8 @@ void EMUL_handleWDM(byte opcode, word32 timestamp);
 void EMUL_hardwareUpdate(word32 timestamp);
 byte MEM_readMem(word32 address, word32 timestamp, word32 emulFlags);
 void MEM_writeMem(word32 address, byte b, word32 timestamp);
+
+void CPU_setRunAddress(word32 address);
 
 #endif /* _CPU_H */
 
