@@ -2,7 +2,7 @@
 
 ./gradlew clean build
 
-basePath=/Users/rebecca/Developer/jniEmu816
+basePath=.
 libPath=$basePath/build/libs/lib65816/shared
 jvmArgs=-Djava.library.path=$libPath
 classPath=$basePath/build/classes/java/main
@@ -12,5 +12,5 @@ classPath=$basePath/build/classes/java/main
 echo   libPath: "$libPath"
 echo classPath: "$classPath"
 
-$JAVA_HOME/jre/bin/java $jvmArgs -cp $classPath emu.Main $*
+$JAVA_HOME/bin/java $jvmArgs -cp $classPath emu.Main $*
  

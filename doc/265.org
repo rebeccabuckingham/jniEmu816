@@ -1,0 +1,148 @@
+#+TITLE: What would it take to extend lib65816 to support 65c265 vectors?
+
+* What is needed?
+  1) Existing '816 interrupts that have moved: IRQNMI, IRQCOP, IRQ
+  2) IRNE64
+  3) IRQT5-7
+
+* How lib65816 currently handles vectors
+** The code that gets run when a "vectored behavior" gets triggered. (dispatch.c)
+  - if (cpu_reset) goto reset;
+  - if (cpu_abort) goto abort;
+  - if (cpu_nmi) goto nmi;
+  - if (cpu_irq) goto irq;
+
+  Various flags get set, and the main dispatch loop jumps to the appropriate handler.
+  All of these handlers simply execute jump table code for fake opcodes corresponding
+  to the condition.  IRQ is somewhat different in that it checks to see if the IRQ 
+  inhibit flag is set before calling that code.
+
+  Reset = opcode 256.
+  Abort = opcode 257.
+  Nmi   = opcode 258.
+  Irq   = opcode 259.
+
+** Where is the *actual* code? (opcodes.h)
+  Each opcode including the fake ones starts with BEGIN_CPU_FUNC and ends with END_CPU_FUNC
+
+** Things that need to be done to make this work
+  1) The addresses for all of the existing vectors in opcodes.h are hard coded and need to be 
+    updated to use 65c265-specific vectors.  There are currently 11 vectors, shared between
+    native and emulated CPU modes.
+  2) Special 65c265 vectors need to be added to handle all of the interrupt types used by
+    the 65c265.  There are many.
+  3) flags and code similar to the cpu_irq logic in dispatch.c needs to be added to trigger
+    the new behavior.
+* Other quality of life improvements that can be made
+  1) lib65816 was written when the host computer cycles were more limited.  The design of the
+    code reflects this.  The entire CPU_run() function could possibly be rewritten to be easier
+    to read and maintain.
+
+* 65816 Vectors
+** Native Mode
+  0xFFE4  COP Instruction 
+  0xFFE6  BRK Instruction 
+  0xFFE8  ABORT Vector 
+  0xFFEA  NMI Vector 
+  0xFFEE  IRQ Vector 
+** Emulated Mode
+  0xFFF4  COP Instruction 
+  0xFFF8  ABORT Vector 
+  0xFFFA  NMI Vector 
+  0xFFFC  RESET Vector 
+  0xFFFE  IRQ/BRK Vector 
+  0xFFFE  IRQ/BRK Vector [opcodes.h has to have this twice.]
+* 65265 Vectors
+** Native Mode
+  0xFF80 = IRQT0
+  0xFF82 = IRQT1
+  0xFF84 = IRQT2
+  0xFF86 = IRQT3
+  0xFF88 = IRQT4
+  0xFF8A = IRQT5
+  0xFF8C = IRQT6
+  0xFF8E = IRQT7
+  0xFF90 = IRPE56
+  0xFF92 = IRNE57
+  0xFF94 = IRPE60
+  0xFF96 = IRPE62
+  0xFF98 = IRNE64
+  0xFF9A = IRNE66
+  0xFF9C = IRQPIB
+  0xFF9E = IRQ Vector
+  0xFFA0 = IRQAR0
+  0xFFA2 = IRQAT0
+  0xFFA4 = IRQAR1
+  0xFFA6 = IRQAT1
+  0xFFA8 = IRQAR2
+  0xFFAA = IRQAT2
+  0xFFAC = IRQAR3
+  0xFFAE = IRQAT3
+  0xFFB4 = COP Instruction
+  0xFFB6 = BRK Vector
+  0xFFB8 = ABORT Vector
+  0xFFBA = NMI Vector
+** Emulated Mode
+  0xFFC0 = IRQT0
+  0xFFC2 = IRQT1
+  0xFFC4 = IRQT2
+  0xFFC6 = IRQT3
+  0xFFC8 = IRQT4
+  0xFFCA = IRQT5
+  0xFFCC = IRQT6
+  0xFFCE = IRQT7
+  0xFFD0 = IRPE56
+  0xFFD2 = IRNE57
+  0xFFD4 = IRPE60
+  0xFFD6 = IRPE62
+  0xFFD8 = IRNE64
+  0xFFDA = IRNE66
+  0xFFDC = IRQPIB
+  0xFFDE = IRQ Vector 
+  0xFFE0 = IRQAR0
+  0xFFE2 = IRQAT0
+  0xFFE4 = IRQAR1
+  0xFFE6 = IRQAT1
+  0xFFE8 = IRQAR2
+  0xFFEA = IRQAT2
+  0xFFEC = IRQAR3
+  0xFFEE = IRQAT3
+  0xFFF4 = COP Instruction 
+  0xFFF8 = ABORT Vector 
+  0xFFFA = NMI Vector
+  0xFFFC = RESET Vector
+  0xFFFE = BRK Vector
+
+* Planned Work
+** TODO Change hard coded vectors to defined ones based on tables below.
+** TODO Change references to '260' to '262'
+** TODO Change references to '1300' to '1310'
+** TODO Add '0,0' to cpu_cycle_table (5 places?)
+** TODO Add 'irne64' flag (like irq flag) and appropriate code in dispatch.c
+** TODO Add 'irqt5' flag and appropriate code in dispatch.c
+** TODO Test new irq's as well as vectors for old ones (add code to do this?)
+** opcodes.h vector changes (existing vectors)
+  0xFFFC -> RESET_VECTOR_LOW
+  0xFFFD -> RESET_VECTOR_HIGH
+  0xFFE8 -> ABORT_VECTOR_LOW
+  0xFFE9 -> ABORT_VECTOR_HIGH
+  0xFFF8 -> EMU_ABORT_VECTOR_LOW
+  0xFFF9 -> EMU_ABORT_VECTOR_HIGH
+  0xFFEA -> NMI_VECTOR_LOW
+  0XFFEB -> NMI_VECTOR_HIGH
+  0xFFFA -> EMU_NMI_VECTOR_LOW
+  0XFFFB -> EMU_NMI_VECTOR_HIGH
+  0xFFEE -> IRQ_VECTOR_LOW
+  0xFFEF -> IRQ_VECTOR_HIGH
+  0xFFFE -> EMU_IRQ_VECTOR_LOW
+  0xFFFF -> EMU_IRQ_VECTOR_HIGH
+** opcodes.h additional vectors
+  0xFF98 -> IRNE64_VECTOR_LOW
+  0xFF99 -> IRNE64_VECTOR_HIGH
+  0xFF8A -> IRQT5_VECTOR_LOW
+  0xFF8B -> IRQT5_VECTOR_HIGH
+  0xFFD8 -> EMU_IRNE64_VECTOR_LOW
+  0xFFD9 -> EMU_IRNE64_VECTOR_HIGH
+  0xFFCA -> EMU_IRQT5_VECTOR_LOW
+  0xFFCB -> EMU_IRQT5_VECTOR_HIGH
+

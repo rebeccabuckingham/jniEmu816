@@ -1,23 +1,30 @@
-Changes to make to bring VERA into the emulator:
+#+TITLE: jniEmu816 Work to do.
 
-* TODO [A] Remove all Swing components from jniEmu816
+* DONE Update code to load the S65X Kernel ROM.
+* TODO [A] Update vectors / irq logic based on 265.org.
+* TODO [B] Changes to make to bring VERA into the emulator:
+** DONE [A] Remove all Swing components from jniEmu816
     - console, etc.
-* TODO [D] Create debugging interface via Socket
-    - connect to port 6502 to control the emulator.
-* TODO [C] Bring VERA in from bexemu:
+** DONE [C] Bring VERA in from bexemu:
     - add all C files from vera
     - make sure gradle builds the library and properly includes vera
     - otherwise should just work
-* TODO [B] Changes to bridge.h / bridge.c:
-** new: memory_allocate(name, start_address, length)
+** TODO [B] Changes to bridge.h / bridge.c:
+*** new: memory_allocate(name, start_address, length)
     - for emulated RAM/ROM
     - need a linked list with RAM/ROM objects.
     - needs to be exposed to the Java side.
-** EMUL_hardwareUpdate()
+*** EMUL_hardwareUpdate()
     - call vera update (60 hz)
     - do other hardware updates
     - check for control signals from Java
-** MEM_readMem() & MEM_writeMem()
+*** MEM_readMem() & MEM_writeMem()
     - read/write calls in VERA's address space have to go directly to VERA.
     - RAM/ROM needs to be specified on the C side, not Java, so RAM/ROM is fast.
     - read/write calls outside of VERA & RAM/ROM get delegated to the java side.
+* TODO [C] Create debugging interface via Socket
+** TODO Functionality
+  - connect to port 6502 to control the emulator.
+  - want the ability to pause the emulator until debugger is connected.
+  - control of the debugger: Swing GUI or Command line-ish?
+* TODO [D] Change name of the project from jniEmu816 to emuS65X.

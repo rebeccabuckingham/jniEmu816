@@ -82,17 +82,13 @@ JNIEXPORT void JNICALL Java_emu_Main_initCpu(JNIEnv *env, jobject obj, jint addr
   int resetLo = MEM_readMem(0xFFFC, 0, 0);
   int resetHi = MEM_readMem(0xFFFD, 0, 0);
 
-  printf("on reset, cpu will jump to: %04x.\n", resetHi * 256 + resetLo);
-
   // rest of actual initialization
   CPUEvent_initialize();
   CPU_setUpdatePeriod(10000);
   CPU_setTrace(0);
-  CPU_reset();
 
   if (address != 0) {
     printf("will set pbr/pc to: %06x.\n", address);
-    // TODO make the change in cpu.h & cpu.c: add method to set pbr/pc.
     CPU_setRunAddress(address);
   }
 
