@@ -20,6 +20,8 @@ word32	cpu_irq;
 int	cpu_stop;
 int	cpu_wait;
 int	cpu_trace;
+int cpu_irne64;
+int cpu_irqt5;
 
 word32	cpu_update_period;
 #if defined( __sparc__ ) && defined( __GNUC__ )
@@ -67,4 +69,24 @@ void CPU_setRunAddress(word32 address)
 {
     PC.W.PC = address & 0xffff;
     PC.B.PB = (address >> 16) & 0xff;
+}
+
+void CPU_addIrne64( word32 m )
+{
+  cpu_irne64 |= m;
+}
+
+void CPU_clearIrne64( word32 m )
+{
+  cpu_irne64 &= ~m;
+}
+
+void CPU_addIrqt5( word32 m )
+{
+  cpu_irqt5 |= m;
+}
+
+void CPU_clearIrqt5( word32 m)
+{
+  cpu_irqt5 &= ~m;
 }

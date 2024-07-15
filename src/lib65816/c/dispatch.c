@@ -49,14 +49,16 @@ void        (**cpu_curr_opcode_table)();
 extern int  cpu_reset,cpu_abort,cpu_nmi,cpu_irq,cpu_stop,cpu_wait,cpu_trace;
 extern int  cpu_update_period;
 
-extern void (*cpu_opcode_table[1300])();
+extern int  cpu_irne64,cpu_irqt5;
+
+extern void (*cpu_opcode_table[1310])();
 
 #ifdef OLDCYCLES
-/* Base cycle counts for all possible 1300 opcodes (260 opcodes x 5 modes).     */
+/* Base cycle counts for all possible 1310 opcodes (262 opcodes x 5 modes).     */
 /* The opcode handlers may add additional cycles to handle special cases such   */
 /* a non-page-aligned direct page register or taking a branch.          */
 
-byte    cpu_cycle_table[1300] =
+byte    cpu_cycle_table[1310] =
 {
     8, 6, 8, 4, 5, 3, 5, 6, 3, 2, 2, 4, 6, 4, 6, 5, /* e=0, m=1, x=1 */
     2, 5, 5, 7, 5, 4, 6, 6, 2, 4, 2, 2, 6, 4, 7, 5,
@@ -74,7 +76,7 @@ byte    cpu_cycle_table[1300] =
     2, 5, 5, 7, 6, 4, 6, 6, 2, 4, 3, 3, 6, 4, 7, 5,
     2, 6, 3, 4, 3, 3, 5, 6, 2, 2, 2, 3, 4, 4, 6, 5,
     2, 5, 5, 7, 5, 4, 6, 6, 2, 4, 4, 2, 6, 4, 7, 5,
-    0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0
 
     8, 6, 8, 4, 5, 3, 5, 6, 3, 2, 2, 4, 6, 4, 6, 5, /* e=0, m=1, x=0 */
     2, 6, 5, 7, 5, 4, 6, 6, 2, 5, 2, 2, 6, 5, 7, 5,
@@ -92,7 +94,7 @@ byte    cpu_cycle_table[1300] =
     2, 6, 5, 7, 6, 4, 8, 6, 2, 5, 4, 3, 6, 5, 7, 5,
     3, 6, 3, 4, 4, 3, 6, 6, 2, 2, 2, 3, 5, 4, 6, 5,
     2, 6, 5, 7, 5, 4, 8, 6, 2, 5, 5, 2, 6, 5, 7, 5,
-    0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0
 
     8, 7, 8, 5, 7, 4, 7, 7, 3, 3, 2, 4, 8, 5, 8, 6, /* e=0, m=0, x=1 */
     2, 6, 6, 8, 7, 5, 8, 7, 2, 5, 2, 2, 8, 5, 9, 6,
@@ -110,7 +112,7 @@ byte    cpu_cycle_table[1300] =
     2, 6, 6, 8, 6, 5, 8, 7, 2, 5, 3, 3, 6, 5, 9, 6,
     2, 7, 3, 5, 3, 4, 7, 7, 2, 3, 2, 3, 4, 5, 8, 6,
     2, 6, 6, 8, 5, 5, 8, 7, 2, 5, 4, 2, 6, 5, 9, 6,
-    0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0
 
     8, 7, 8, 5, 7, 4, 7, 7, 3, 3, 2, 4, 8, 5, 8, 6, /* e=0, m=0, x=0 */
     2, 7, 6, 8, 7, 5, 8, 7, 2, 6, 2, 2, 8, 6, 9, 6,
@@ -128,7 +130,7 @@ byte    cpu_cycle_table[1300] =
     2, 7, 6, 8, 6, 5, 8, 7, 2, 6, 4, 3, 6, 6, 9, 6,
     3, 7, 3, 5, 4, 4, 7, 7, 2, 3, 2, 3, 5, 5, 8, 6,
     2, 7, 6, 8, 5, 5, 8, 7, 2, 6, 5, 2, 6, 6, 9, 6,
-    0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0
 
     8, 6, 8, 4, 5, 3, 5, 6, 3, 2, 2, 4, 6, 4, 6, 5, /* e=1, m=1, x=1 */
     2, 5, 5, 7, 5, 4, 6, 6, 2, 4, 2, 2, 6, 4, 7, 5,
@@ -146,7 +148,7 @@ byte    cpu_cycle_table[1300] =
     2, 5, 5, 7, 6, 4, 6, 6, 2, 4, 3, 3, 6, 4, 7, 5,
     2, 6, 3, 4, 3, 3, 5, 6, 2, 2, 2, 3, 4, 4, 6, 5,
     2, 5, 5, 7, 5, 4, 6, 6, 2, 4, 4, 2, 6, 4, 7, 5,
-    0, 0, 0, 0
+    0, 0, 0, 0, 0, 0
 };
 #endif
 
@@ -201,6 +203,8 @@ debug_resume:
     if (cpu_abort) goto abort;
     if (cpu_nmi) goto nmi;
     if (cpu_irq) goto irq;
+    if (cpu_irne64) goto irne64;
+    if (cpu_irqt5) goto irqt5;
 irq_return:
     if (cpu_wait) { cpu_cycle_count++; goto dispatch; }
     opcode = M_READ_OPCODE(PC.A);
@@ -244,7 +248,14 @@ irq:
     if (P & 0x04) goto irq_return;
     (**cpu_curr_opcode_table[259])();
     goto dispatch;
-
+irne64:
+    if (P & 0x04) goto irq_return;
+     (**cpu_curr_opcode_table[260])();
+    goto dispatch;   
+irqt5:
+    if (P & 0x04) goto irq_return;
+     (**cpu_curr_opcode_table[261])();
+    goto dispatch;
 }
 
 /* Recalculate opcode_offset based on the new processor mode */
@@ -260,7 +271,7 @@ void CPU_modeSwitch(void) {
             X.B.H = 0;
             Y.B.H = 0;
         }
-        opcode_offset = ((~P >> 4) & 0x03) * 260;
+        opcode_offset = ((~P >> 4) & 0x03) * 262;
     }
 #ifdef OLDCYCLES
     cpu_curr_cycle_table = cpu_cycle_table + opcode_offset;

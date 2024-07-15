@@ -1,7 +1,7 @@
 #+TITLE: jniEmu816 Work to do.
 
 * DONE Update code to load the S65X Kernel ROM.
-* TODO [A] Update vectors / irq logic based on 265.org.
+* DONE [A] Update vectors / irq logic based on 265.org.
 * TODO [B] Changes to make to bring VERA into the emulator:
 ** DONE [A] Remove all Swing components from jniEmu816
     - console, etc.
@@ -28,3 +28,4 @@
   - want the ability to pause the emulator until debugger is connected.
   - control of the debugger: Swing GUI or Command line-ish?
 * TODO [D] Change name of the project from jniEmu816 to emuS65X.
+* TODO [E] Consider dropping Java & going C-only.

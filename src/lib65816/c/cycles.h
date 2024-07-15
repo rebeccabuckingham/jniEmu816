@@ -1310,3 +1310,13 @@
 #define e1m1x1_abort_cycles 0
 #define e1m1x1_nmi_cycles 0
 #define e1m1x1_irq_cycles 0
+#define e0m1x1_irne64_cycles 0
+#define e0m1x0_irne64_cycles 0
+#define e0m0x1_irne64_cycles 0
+#define e0m0x0_irne64_cycles 0
+#define e1m1x1_irne64_cycles 0
+#define e0m1x1_irqt5_cycles 0
+#define e0m1x0_irqt5_cycles 0
+#define e0m0x1_irqt5_cycles 0
+#define e0m0x0_irqt5_cycles 0
+#define e1m1x1_irqt5_cycles 0

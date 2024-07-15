@@ -113,13 +113,21 @@
   0xFFFC = RESET Vector
   0xFFFE = BRK Vector
 
+* 65816 vectors other
+BRK 0xFFE6
+EMU BRK 0xFFFE
+COP 0xFFE4
+EMU COP 0xFFF4
+
 * Planned Work
-** TODO Change hard coded vectors to defined ones based on tables below.
-** TODO Change references to '260' to '262'
-** TODO Change references to '1300' to '1310'
-** TODO Add '0,0' to cpu_cycle_table (5 places?)
-** TODO Add 'irne64' flag (like irq flag) and appropriate code in dispatch.c
-** TODO Add 'irqt5' flag and appropriate code in dispatch.c
+** DONE Change hard coded vectors to defined ones based on tables below.
+** DONE Change references to '260' to '262'
+** DONE Change references to '1300' to '1310'
+** DONE Add '0,0' to cpu_cycle_table (5 places?)
+** DONE Add 'irne64' flag (like irq flag) and appropriate code in dispatch.c
+  -> cpu_irne64   CPU_addIrne64()/CPU_clearIrne64
+** DONE Add 'irqt5' flag and appropriate code in dispatch.c
+  -> cpu_irqt5    CPU_addIrqt5()/CPU_clearIrqt5
 ** TODO Test new irq's as well as vectors for old ones (add code to do this?)
 ** opcodes.h vector changes (existing vectors)
   0xFFFC -> RESET_VECTOR_LOW
