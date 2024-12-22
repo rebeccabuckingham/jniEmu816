@@ -23,6 +23,43 @@ application {
     applicationDefaultJvmArgs = ["-Djava.library.path=" + file("${buildDir}/libs/lib65816/shared").absolutePath]
 }
 
+task generateRunScript {
+    dependsOn 'classes' // Compile first
+
+    doLast {
+
+        //println("new builddir is: '" + layout.buildDirectory.get() + "'")
+
+        def scriptFile = file("$buildDir/runApp.sh")
+        def debugScriptFile = file("$buildDir/debugApp.sh")
+
+        // Access the main class from the application block
+        def mainClass = application.mainClass.get()
+
+        // Add the app's JAR and runtime dependencies to the classpath
+        def appJar = tasks.jar.archiveFile.get().asFile.absolutePath
+        def runtimeClasspath = configurations.runtimeClasspath.files
+        def classpath = ([appJar] + runtimeClasspath.collect { it.absolutePath }).join(':')
+
+        def cLibArgs = "-Djava.library.path=" + file("${buildDir}/libs/lib65816/shared").absolutePath
+
+        // Write the shell script
+        scriptFile.text = """#!/bin/bash
+        java $cLibArgs -cp "$classpath" $mainClass "\$@"
+        """
+        scriptFile.setExecutable(true)
+        println "Run script created at: ${scriptFile.absolutePath}"
+
+        // Write the debug shell script
+        debugScriptFile.text = """#!/bin/bash
+        java $cLibArgs -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005 -cp "$classpath" $mainClass "\$@"
+        """
+        debugScriptFile.setExecutable(true)
+        println "Debug script created at: ${debugScriptFile.absolutePath}"
+
+    }
+}
+
 model {
     platforms {
         // x64 {

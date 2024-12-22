@@ -26,6 +26,11 @@ hs_err_pid*
 .idea/
 #native/emu
 
+!gradlew
+!gradlew.bat
+!gradle/wrapper/gradle-wrapper.properties
+!gradle/wrapper/gradle-wrapper.jar
+
 # Ignore Gradle project-specific cache directory
 .gradle
 
