@@ -1,9 +1,16 @@
 package emu;
 
+import com.google.gson.annotations.Expose;
+
 public abstract class BusDeviceBase implements BusDevice {
-	protected int size;
-	protected int startAddress;
-	protected String name;
+	@Expose
+	public int size;
+	@Expose
+	public int startAddress;
+	@Expose
+	public String name;
+	@Expose
+	public String className;
 
 	public String getName() { return name; }
 
@@ -37,5 +44,6 @@ public abstract class BusDeviceBase implements BusDevice {
 		this.name = name;
 		this.startAddress = startAddress;
 		this.size = size;
+		this.className = this.getClass().getName();
 	}
 }

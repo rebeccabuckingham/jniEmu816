@@ -1,11 +1,14 @@
 package emu;
 
+import com.google.gson.annotations.Expose;
+
 import java.util.ArrayList;
 
 public class Bus {
 	private static final boolean TRACE_MEMORY_READ = false;
 	private static final boolean TRACE_MEMORY_WRITE = false;
 
+	@Expose
 	public ArrayList<BusDevice> deviceList;
 
 	public short readMemory(int address) {

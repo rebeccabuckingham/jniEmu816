@@ -1,7 +1,5 @@
 package emu;
 
-import java.util.Arrays;
-
 public class Main {
 	public native void print();
 	public native void initCpu();
@@ -11,7 +9,6 @@ public class Main {
 		System.loadLibrary("lib65816");
 	}
 
-	//public MainScreen mainScreen;
 	public Bus bus;
 	public ConsoleDevice consoleDevice;
 
@@ -24,7 +21,12 @@ public class Main {
 		bus.writeMemory(address, value);
 	}
 
-	public void hardwareUpdate(long timestamp) { }
+	// note: timestamp is a long (64 bit) value in Java, but only a
+	//       32 bit unsigned int in C.  That means it will wrap over to 0
+	//    	 after 4,294,967,295 cycles, or a little over 7 minutes.
+	public void hardwareUpdate(long timestamp) {
+
+	}
 
 	// called from bridge.c Java_emu_Main_initCpu()
 	public void sayHelloJava() {
@@ -32,53 +34,51 @@ public class Main {
 
 	public Main() {
 		bus = new Bus();
+	}
 
-		Ram highCode = new Ram("highCode", 0x010000, 0x8000);
-		Arrays.fill(highCode.memory, (short) 0x42);
-		bus.add(highCode);
-
-		Ram highData = new Ram("highData", 0x018000, 0x8000);
-		Arrays.fill(highData.memory, (short) 0x42);
-		bus.add(highData);
-
-		Ram lowCode =  new Ram("lowCode", 0x00E000, 0x2000);
-		Arrays.fill(lowCode.memory, (short) 0x42);
-		bus.add(lowCode);
-
-		Ram lowData =  new Ram("lowData", 0x00D100, 0x0F00);
-		Arrays.fill(lowData.memory, (short) 0x42);
-		bus.add(lowData);
-
-		consoleDevice = new ConsoleDevice((int) 0xD000, 4);
-		bus.add(consoleDevice);
-
-		Ram stack = new Ram("stack", 0x00C800, 0x0800);
-		Arrays.fill(stack.memory, (short) 0x00);
-		bus.add(stack);
-
-		Ram base = new Ram("base", 0x000000, 0xC800);
-		Arrays.fill(base.memory, (short) 0x42);
-		bus.add(base);
-
-		consoleDevice.showGUI(consoleDevice);
+	public static ConsoleDevice findConsoleDevice(Bus bus) {
+		return bus.deviceList.stream()
+				.filter(device -> device instanceof ConsoleDevice)
+				.map(device -> (ConsoleDevice) device)
+				.findFirst()
+				.orElse(null);
 	}
 
 	public static void main(String[] args) throws Exception {
-		if (args.length < 1) {
-			System.out.println("need to specify the file to load and run.");
+		if (args.length < 2) {
+			System.out.println("Usage: [config file] [program file]");
 		} else {
-			System.out.println("will load and run: " + args[0]);
+			String configFile = args[0];
+			System.out.println("Using config file: " + configFile);
+
+			String filename = args[1];
+			System.out.println("will load and run: " + filename);
 
 			Main m = new Main();
+			Configuration.configureFromFile(configFile, m.bus);
 
-			PgzLoader.loadPgz(args[0], m.bus);
+			m.consoleDevice = findConsoleDevice(m.bus);
+			if (m.consoleDevice == null) {
+				System.out.println("no console device specified");
+			} else {
+				m.consoleDevice.showGUI(m.consoleDevice);
+			}
+
+			if (filename.toLowerCase().endsWith(".prg")) {
+				Loader.loadPrg(filename, m.bus);
+			} else {
+				Loader.loadPgz(filename, m.bus);
+			}
+
 			m.initCpu();
 
-			System.out.println("waiting 3 seconds for gui to be ready...");
-			try {
-				Thread.sleep(3000);
-			} catch (Exception e) {
+			if (m.consoleDevice != null) {
+				System.out.println("waiting 3 seconds for gui to be ready...");
+				try {
+					Thread.sleep(3000);
+				} catch (Exception e) {
 
+				}
 			}
 
 			System.out.println("starting cpu...");

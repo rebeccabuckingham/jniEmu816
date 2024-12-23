@@ -15,7 +15,7 @@ import java.util.Stack;
 public class ConsoleDevice extends BusDeviceBase {
 	private final static int BUFSIZE = 128;
 	private final static int CHAR_READY_FLAG = 0;			// memory location that's set when there's input waiting
-	private final static int CHAR_OUT = 0;						// memory location to write to screen
+	private final static int CHAR_OUT = 0;					// memory location to write to screen
 	private final static int CURRENT_CHAR = 1;				// get char that's waiting, will *not* move the pointer
 	private final static int CHARGOT = 2;
 

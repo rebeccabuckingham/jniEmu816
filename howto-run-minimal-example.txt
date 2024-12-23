@@ -1,4 +1,4 @@
 To run the minimal calypsi example (bring up console, print stuff):
 
 ./gradlew clean build generateRunScript
-./build/runApp.sh /Users/rebecca/Developer/Archive/calypsi-minimal-example/test.pgz 
+./build/runApp.sh config/turaco.cfg /Users/rebecca/Developer/Archive/calypsi-minimal-example/test.pgz 

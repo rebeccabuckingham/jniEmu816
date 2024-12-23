@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-public class PgzLoader {
+public class Loader {
 
 	private static void hexDump(byte[] array, int startIndex, int count) {
 		String line = String.format("%06x:", startIndex);
@@ -36,6 +36,12 @@ public class PgzLoader {
 		return a1 + (a2 * 256) + (a3 * 65536);
 	}
 
+	private static int getAddr16(byte[] content, int pointer) {
+		int a1 = (int) (content[pointer] & 0xFF);
+		int a2 = (int) (content[pointer + 1] & 0xFF);
+
+		return a1 + (a2 * 256);
+	}
 
 	public static int loadSegment(byte[] content, int pointer, Bus bus) {
 		int address = getAddr24(content, pointer);  pointer += 3;
@@ -71,6 +77,18 @@ public class PgzLoader {
 			pointer = loadSegment(content, pointer, bus);
 			System.out.println("after loading segment " + segment + ", pointer is now: " + pointer);
 			segment++;
+		}
+	}
+
+	public static void loadPrg(String filename, Bus bus) throws IOException {
+		byte[] content = Files.readAllBytes(Paths.get(filename));
+		System.out.println("content size is: " + content.length);
+		hexDump(content, 0, 16);
+
+		int address = getAddr16(content, 0);
+		for (int i = 2; i < content.length; i++) {
+			bus.writeMemory(address, content[i]);
+			address++;
 		}
 	}
 }
