@@ -13,6 +13,8 @@ jmethodID writeMemMid;
 jmethodID readMemMid;
 jmethodID hardwareUpdateMid;
 
+extern word32 runAddress;
+
 JNIEXPORT void JNICALL Java_emu_Main_print(JNIEnv *env, jobject obj) {
 	printf("Hello From *new* C World!\n");
 	return;
@@ -22,6 +24,9 @@ void EMUL_hardwareUpdate(word32 timestamp) {
   (*mainEnv)->CallVoidMethod(mainEnv, mainObject, hardwareUpdateMid, timestamp);
 }
 
+// TODO MEM_readMem() and MEM_writeMem() should use *local* memory unless
+//      reading soon-to-be defined areas of memory.
+//      when video is added, want those accesses to go straight to the video code.
 byte MEM_readMem(word32 address, word32 timestamp, word32 emulFlags) {
   byte b = (byte) (*mainEnv)->CallShortMethod(mainEnv, mainObject, readMemMid, address, timestamp);
   return b;
@@ -35,6 +40,10 @@ void EMUL_handleWDM(byte opcode, word32 timestamp) { }
 
 JNIEXPORT void JNICALL Java_emu_Main_runCpu(JNIEnv *env, jobject obj) {
   CPU_run();
+}
+
+JNIEXPORT void JNICALL Java_emu_Main_setRunAddress(JNIEnv *env, jobject obj, jlong theRunAddress) {
+  runAddress = theRunAddress;
 }
 
 JNIEXPORT void JNICALL Java_emu_Main_initCpu(JNIEnv *env, jobject obj) {

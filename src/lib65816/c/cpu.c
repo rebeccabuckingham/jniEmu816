@@ -22,11 +22,7 @@ int	cpu_wait;
 int	cpu_trace;
 
 word32	cpu_update_period;
-#if defined( __sparc__ ) && defined( __GNUC__ )
-register word32	cpu_cycle_count asm ("g5");
-#else
-word32	cpu_cycle_count;
-#endif
+uint64_t  cpu_cycle_count;
 
 void CPU_setUpdatePeriod(word32 period)
 {
@@ -61,4 +57,10 @@ void CPU_addIRQ( word32 m )
 void CPU_clearIRQ( word32 m )
 {
 	cpu_irq &= ~m;
+}
+
+void CPU_setRunAddress(word32 address)
+{
+    PC.W.PC = address & 0xffff;
+    PC.B.PB = (address >> 16) & 0xff;
 }

@@ -4,6 +4,7 @@ public class Main {
 	public native void print();
 	public native void initCpu();
 	public native void runCpu();
+	public native void setRunAddress(long address);
 
 	static {
 		System.loadLibrary("lib65816");
@@ -46,17 +47,15 @@ public class Main {
 
 	public static void main(String[] args) throws Exception {
 		if (args.length < 2) {
-			System.out.println("Usage: [config file] [program file]");
+			System.out.println("Usage: [config file] [program files]");
 		} else {
 			String configFile = args[0];
 			System.out.println("Using config file: " + configFile);
 
-			String filename = args[1];
-			System.out.println("will load and run: " + filename);
-
 			Main m = new Main();
 			Configuration.configureFromFile(configFile, m.bus);
 
+			// TODO console device will change to TCP/IP port.
 			m.consoleDevice = findConsoleDevice(m.bus);
 			if (m.consoleDevice == null) {
 				System.out.println("no console device specified");
@@ -64,14 +63,24 @@ public class Main {
 				m.consoleDevice.showGUI(m.consoleDevice);
 			}
 
-			if (filename.toLowerCase().endsWith(".prg")) {
-				Loader.loadPrg(filename, m.bus);
-			} else {
-				Loader.loadPgz(filename, m.bus);
+			for (int i = 1; i < args.length; i++) {
+				String filename = args[i];
+				System.out.println("will load and run: " + filename);
+
+				if (filename.toLowerCase().endsWith(".prg")) {
+					Loader.loadPrg(filename, m.bus);
+				} else {
+					Loader.loadPgz(filename, m.bus);
+				}
 			}
 
 			m.initCpu();
 
+			// TODO: this would have to be an option specified before the filenames.
+			// m.setRunAddress(0);
+
+			// TODO: won't need this sleep once console device is TCP/IP.
+			//       but! will need an optional wait for connection feature.
 			if (m.consoleDevice != null) {
 				System.out.println("waiting 3 seconds for gui to be ready...");
 				try {

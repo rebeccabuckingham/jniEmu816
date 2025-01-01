@@ -31,6 +31,14 @@ JNIEXPORT void JNICALL Java_emu_Main_initCpu
 JNIEXPORT void JNICALL Java_emu_Main_runCpu
   (JNIEnv *, jobject);
 
+/*
+ * Class:     emu_Main
+ * Method:    setRunAddress
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_emu_Main_setRunAddress
+  (JNIEnv *, jobject, jlong);
+
 #ifdef __cplusplus
 }
 #endif

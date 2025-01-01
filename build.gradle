@@ -89,10 +89,12 @@ model {
                 if (targetPlatform.operatingSystem.macOsX) {
                     cCompiler.args '-I', "${jvmHome}/include"
                     cCompiler.args '-I', "${jvmHome}/include/darwin"
+                    cCompiler.args '-I', "/usr/local/include/SDL2"
                     cCompiler.args '-mmacosx-version-min=10.9'
                     linker.args '-mmacosx-version-min=10.9'
                     //linker.args '-stdlib=libc++'
-									  //linker.args '-L/usr/local/lib'
+									  linker.args '-L/usr/local/lib'
+                    linker.args '-lSDL2'
 									  //linker.args '-ljvm'
                 } else if (targetPlatform.operatingSystem.linux) {
                     cCompiler.args '-I', "${jvmHome}/include"

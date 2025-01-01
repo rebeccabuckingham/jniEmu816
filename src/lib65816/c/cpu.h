@@ -14,6 +14,7 @@
  */
 
 #include "config.h"
+#include <stdint.h>
 
 
 /* Type definitions for convenience.  These are not intended to be used
@@ -43,7 +44,7 @@ typedef signed int          sword16;
 typedef signed char         offset_s;   /* short offset */
 typedef signed short        offset_l;   /* long offset  */
 
-
+typedef unsigned long long  long64;
 
 /*
  * Union definition of a 16-bit value that can also be 
@@ -111,14 +112,7 @@ extern union {      /* Program Counter       */
 
 
 /* Current cycle count */
-
-#if defined ( __sparc__ ) && defined ( __GNUC__ )
-register word32 cpu_cycle_count asm ("g5");
-#else
-extern word32   cpu_cycle_count;
-#endif
-
-
+extern uint64_t cpu_cycle_count;
 
 /* These are the core memory access macros used in the 65816 emulator.
  * Set these to point to routines which handle your emulated machine's
@@ -224,6 +218,8 @@ void EMUL_handleWDM(byte opcode, word32 timestamp);
 void EMUL_hardwareUpdate(word32 timestamp);
 byte MEM_readMem(word32 address, word32 timestamp, word32 emulFlags);
 void MEM_writeMem(word32 address, byte b, word32 timestamp);
+
+void CPU_setRunAddress(word32 address);
 
 #endif /* _CPU_H */
 

@@ -8,14 +8,21 @@
  * Copyright (C) 2006 by Samuel A. Falvo II
  *
  * Modified for greater portability and virtual hardware independence.
+ * 
+ * Copyright (C) 2024 by Rebecca Buckingham
+ * highly modified to integrate with bsx emulator.
  */
 
 #define CPU_DISPATCH
 
 #include "cpu.h"
 #include "cpumicro.h"
+#include "util.h"
+#include <stdint.h>
+#include <stdio.h>
 
-//void CPUEvent_elapse( word32 cycles );
+int dispatch_quit = 0;
+word32 runAddress = 0;
 
 dualw   A;  /* Accumulator               */
 dualw   D;  /* Direct Page Register      */
@@ -40,117 +47,33 @@ union {
 duala       atmp,opaddr;
 dualw       wtmp,otmp,operand;
 int         a1,a2,a3,a4,o1,o2,o3,o4;
-
-#ifdef OLDCYCLES
-byte        *cpu_curr_cycle_table;
-#endif
 void        (**cpu_curr_opcode_table)();
 
 extern int  cpu_reset,cpu_abort,cpu_nmi,cpu_irq,cpu_stop,cpu_wait,cpu_trace;
 extern int  cpu_update_period;
 
-extern void (*cpu_opcode_table[1300])();
+extern void (*cpu_opcode_table[1310])();
 
-#ifdef OLDCYCLES
-/* Base cycle counts for all possible 1300 opcodes (260 opcodes x 5 modes).     */
-/* The opcode handlers may add additional cycles to handle special cases such   */
-/* a non-page-aligned direct page register or taking a branch.          */
+uint64_t last_update, next_update;
 
-byte    cpu_cycle_table[1300] =
-{
-    8, 6, 8, 4, 5, 3, 5, 6, 3, 2, 2, 4, 6, 4, 6, 5, /* e=0, m=1, x=1 */
-    2, 5, 5, 7, 5, 4, 6, 6, 2, 4, 2, 2, 6, 4, 7, 5,
-    6, 6, 8, 4, 3, 3, 5, 6, 4, 2, 2, 5, 4, 4, 6, 5,
-    2, 5, 5, 7, 4, 4, 6, 6, 2, 4, 2, 2, 4, 4, 7, 5,
-    7, 6, 2, 4, 7, 3, 5, 6, 3, 2, 2, 3, 3, 4, 6, 5,
-    2, 5, 5, 7, 7, 4, 6, 6, 2, 4, 3, 2, 4, 4, 7, 5,
-    6, 6, 6, 4, 3, 3, 5, 6, 4, 2, 2, 6, 5, 4, 6, 5,
-    2, 5, 5, 7, 4, 4, 6, 6, 2, 4, 4, 2, 6, 4, 7, 5,
-    2, 6, 3, 4, 3, 3, 3, 6, 2, 2, 2, 3, 4, 4, 4, 5,
-    2, 6, 5, 7, 4, 4, 4, 6, 2, 5, 2, 2, 4, 5, 5, 5,
-    2, 6, 2, 4, 3, 3, 3, 6, 2, 2, 2, 4, 4, 4, 4, 5,
-    2, 5, 5, 7, 4, 4, 4, 6, 2, 4, 2, 2, 4, 4, 4, 5,
-    2, 6, 3, 4, 3, 3, 5, 6, 2, 2, 2, 3, 4, 4, 4, 5,
-    2, 5, 5, 7, 6, 4, 6, 6, 2, 4, 3, 3, 6, 4, 7, 5,
-    2, 6, 3, 4, 3, 3, 5, 6, 2, 2, 2, 3, 4, 4, 6, 5,
-    2, 5, 5, 7, 5, 4, 6, 6, 2, 4, 4, 2, 6, 4, 7, 5,
-    0, 0, 0, 0,
+#define RESET_OP    256
+#define ABORT_OP    257
+#define NMI_OP      258
+#define IRQ_OP      259
 
-    8, 6, 8, 4, 5, 3, 5, 6, 3, 2, 2, 4, 6, 4, 6, 5, /* e=0, m=1, x=0 */
-    2, 6, 5, 7, 5, 4, 6, 6, 2, 5, 2, 2, 6, 5, 7, 5,
-    6, 6, 8, 4, 3, 3, 5, 6, 4, 2, 2, 5, 4, 4, 6, 5,
-    2, 6, 5, 7, 4, 4, 6, 6, 2, 5, 2, 2, 5, 5, 7, 5,
-    7, 6, 2, 4, 0, 3, 5, 6, 4, 2, 2, 3, 3, 4, 6, 5,
-    2, 6, 5, 7, 0, 4, 6, 6, 2, 5, 4, 2, 4, 5, 7, 5,
-    6, 6, 6, 4, 3, 3, 5, 6, 5, 2, 2, 6, 5, 4, 6, 5,
-    2, 6, 5, 7, 4, 4, 6, 6, 2, 5, 5, 2, 6, 5, 7, 5,
-    2, 6, 3, 4, 4, 3, 4, 6, 2, 2, 2, 3, 5, 4, 5, 5,
-    2, 6, 5, 7, 5, 4, 5, 6, 2, 5, 2, 2, 4, 5, 5, 5,
-    3, 6, 3, 4, 4, 3, 4, 6, 2, 2, 2, 4, 5, 4, 5, 5,
-    2, 6, 5, 7, 5, 4, 5, 6, 2, 5, 2, 2, 5, 5, 5, 5,
-    3, 6, 3, 4, 4, 3, 6, 6, 2, 2, 2, 3, 5, 4, 6, 5,
-    2, 6, 5, 7, 6, 4, 8, 6, 2, 5, 4, 3, 6, 5, 7, 5,
-    3, 6, 3, 4, 4, 3, 6, 6, 2, 2, 2, 3, 5, 4, 6, 5,
-    2, 6, 5, 7, 5, 4, 8, 6, 2, 5, 5, 2, 6, 5, 7, 5,
-    0, 0, 0, 0,
+void handleSignal(int type) {
+  (**cpu_curr_opcode_table[type])();
+}
 
-    8, 7, 8, 5, 7, 4, 7, 7, 3, 3, 2, 4, 8, 5, 8, 6, /* e=0, m=0, x=1 */
-    2, 6, 6, 8, 7, 5, 8, 7, 2, 5, 2, 2, 8, 5, 9, 6,
-    6, 7, 8, 5, 4, 4, 7, 7, 4, 3, 2, 5, 5, 5, 8, 6,
-    2, 6, 6, 8, 5, 5, 8, 7, 2, 5, 2, 2, 5, 5, 9, 6,
-    7, 7, 2, 5, 0, 4, 7, 7, 4, 3, 2, 3, 3, 5, 8, 6,
-    2, 6, 6, 8, 0, 5, 8, 7, 2, 5, 3, 2, 4, 5, 9, 6,
-    6, 7, 6, 5, 4, 4, 7, 7, 5, 3, 2, 6, 5, 5, 8, 6,
-    2, 6, 6, 8, 5, 5, 8, 7, 2, 5, 4, 2, 6, 5, 9, 6,
-    2, 7, 3, 5, 3, 4, 3, 7, 2, 3, 2, 3, 4, 5, 4, 6,
-    2, 6, 6, 8, 4, 5, 4, 7, 2, 5, 2, 2, 5, 5, 5, 6,
-    2, 7, 2, 5, 3, 4, 3, 7, 2, 3, 2, 4, 4, 5, 4, 6,
-    2, 6, 6, 8, 4, 5, 4, 7, 2, 5, 2, 2, 4, 5, 4, 6,
-    2, 7, 3, 5, 3, 4, 7, 7, 2, 3, 2, 3, 4, 5, 8, 6,
-    2, 6, 6, 8, 6, 5, 8, 7, 2, 5, 3, 3, 6, 5, 9, 6,
-    2, 7, 3, 5, 3, 4, 7, 7, 2, 3, 2, 3, 4, 5, 8, 6,
-    2, 6, 6, 8, 5, 5, 8, 7, 2, 5, 4, 2, 6, 5, 9, 6,
-    0, 0, 0, 0,
+void doUpdate() {
+  E_UPDATE(cpu_cycle_count);
+  last_update = cpu_cycle_count;
+  next_update = last_update + cpu_update_period;
+}
 
-    8, 7, 8, 5, 7, 4, 7, 7, 3, 3, 2, 4, 8, 5, 8, 6, /* e=0, m=0, x=0 */
-    2, 7, 6, 8, 7, 5, 8, 7, 2, 6, 2, 2, 8, 6, 9, 6,
-    6, 7, 8, 5, 4, 4, 7, 7, 4, 3, 2, 5, 5, 5, 8, 6,
-    2, 7, 6, 8, 5, 5, 8, 7, 2, 6, 2, 2, 6, 6, 9, 6,
-    7, 7, 2, 5, 0, 4, 7, 7, 3, 3, 2, 3, 3, 5, 8, 6,
-    2, 7, 6, 8, 0, 5, 8, 7, 2, 6, 4, 2, 4, 6, 9, 6,
-    6, 7, 6, 5, 4, 4, 7, 7, 4, 3, 2, 6, 5, 5, 8, 6,
-    2, 7, 6, 8, 5, 5, 8, 7, 2, 6, 5, 2, 6, 6, 9, 6,
-    2, 7, 3, 5, 4, 4, 4, 7, 2, 3, 2, 3, 5, 5, 5, 6,
-    2, 7, 6, 8, 5, 5, 5, 7, 2, 6, 2, 2, 5, 6, 6, 6,
-    3, 7, 3, 5, 4, 4, 4, 7, 2, 3, 2, 4, 5, 5, 5, 6,
-    2, 7, 6, 8, 5, 5, 5, 7, 2, 6, 2, 2, 5, 6, 5, 6,
-    3, 7, 3, 5, 4, 4, 7, 7, 2, 3, 2, 3, 5, 5, 8, 6,
-    2, 7, 6, 8, 6, 5, 8, 7, 2, 6, 4, 3, 6, 6, 9, 6,
-    3, 7, 3, 5, 4, 4, 7, 7, 2, 3, 2, 3, 5, 5, 8, 6,
-    2, 7, 6, 8, 5, 5, 8, 7, 2, 6, 5, 2, 6, 6, 9, 6,
-    0, 0, 0, 0,
-
-    8, 6, 8, 4, 5, 3, 5, 6, 3, 2, 2, 4, 6, 4, 6, 5, /* e=1, m=1, x=1 */
-    2, 5, 5, 7, 5, 4, 6, 6, 2, 4, 2, 2, 6, 4, 7, 5,
-    6, 6, 8, 4, 3, 3, 5, 6, 4, 2, 2, 5, 4, 4, 6, 5,
-    2, 5, 5, 7, 4, 4, 6, 6, 2, 4, 2, 2, 4, 4, 7, 5,
-    7, 6, 2, 4, 0, 3, 5, 6, 3, 2, 2, 3, 3, 4, 6, 5,
-    2, 5, 5, 7, 0, 4, 6, 6, 2, 4, 3, 2, 4, 4, 7, 5,
-    6, 6, 6, 4, 3, 3, 5, 6, 4, 2, 2, 6, 5, 4, 6, 5,
-    2, 5, 5, 7, 4, 4, 6, 6, 2, 4, 4, 2, 6, 4, 7, 5,
-    2, 6, 3, 4, 3, 3, 3, 6, 2, 2, 2, 3, 4, 4, 4, 5,
-    2, 5, 5, 7, 4, 4, 4, 6, 2, 4, 2, 2, 4, 4, 4, 5,
-    2, 6, 2, 4, 3, 3, 3, 6, 2, 2, 2, 4, 4, 4, 4, 5,
-    2, 5, 5, 7, 4, 4, 4, 6, 2, 4, 2, 2, 4, 4, 4, 5,
-    2, 6, 3, 4, 3, 3, 5, 6, 2, 2, 2, 3, 4, 4, 6, 5,
-    2, 5, 5, 7, 6, 4, 6, 6, 2, 4, 3, 3, 6, 4, 7, 5,
-    2, 6, 3, 4, 3, 3, 5, 6, 2, 2, 2, 3, 4, 4, 6, 5,
-    2, 5, 5, 7, 5, 4, 6, 6, 2, 4, 4, 2, 6, 4, 7, 5,
-    0, 0, 0, 0
-};
-#endif
-
-void CPU_single_step_init(void) {
+void CPU_init(void) {
+  last_update = 0;
+  next_update = cpu_update_period;
   cpu_cycle_count = 0;
   E = 1;
   F_setM(1);
@@ -158,93 +81,51 @@ void CPU_single_step_init(void) {
   CPU_modeSwitch();
 }
 
-void CPU_single_step(void)
-{
-    int opcode;
-
-    // fetch and execute the opcode
-    opcode = M_READ_OPCODE(PC.A);
-    PC.W.PC++;
-    (**cpu_curr_opcode_table[opcode])();
-
-    // TODO: how do we report the status back?
+void CPU_step(void) {
+  if (cpu_cycle_count >= next_update) doUpdate();
+  int opcode = M_READ_OPCODE(PC.A);
+  PC.W.PC++;
+  (**cpu_curr_opcode_table[opcode])();
 }
 
-void CPU_run(void)
-{
-    word32  last_update,next_update;
-    int opcode;
-
-    cpu_cycle_count = 0;
-    last_update = 0;
-    next_update = cpu_update_period;
+void CPU_run(void) {
+    CPU_setUpdatePeriod(1000);
+    CPU_setTrace(0);
+    cpu_reset = 0;
+    cpu_abort = 0;
+    cpu_nmi = 0;
+    cpu_irq = 0;
+    cpu_stop = 0;
+    cpu_wait = 0;
+    P = 0x34;
     E = 1;
-    F_setM(1);
-    F_setX(1);
+    D.W = 0;
+    DB = 0;
+// TODO uncomment these lines to add runAddress support back in.
+//    PC.B.PB = (runAddress >> 16);
+    PC.B.PB = 0;
+    S.W = 0x01FF;
+    A.W = 0;
+    X.W = 0;
+    Y.W = 0;
+//    PC.B.L = (runAddress & 0xff);
+//    PC.B.H = ((runAddress >> 8) & 0xff);
+    PC.B.L = 0x00;
+    PC.B.H = 0xe0;
     CPU_modeSwitch();
 
-dispatch:
-//    CPUEvent_elapse( cpu_cycle_count );
-//    cpu_cycle_count = 0;
+    printf("Bank is: %02x, PC is %02x%02x\n", PC.B.PB, PC.B.H, PC.B.L);
 
-// #ifdef  E_UPDATE
-     if (cpu_cycle_count >= next_update) goto update;
- update_resume:
-// #endif
-
-#ifdef DEBUG
-    if (cpu_trace) goto debug;
-debug_resume:
-#endif
-    if (cpu_reset) goto reset;
-    if (cpu_stop) goto dispatch;
-    if (cpu_abort) goto abort;
-    if (cpu_nmi) goto nmi;
-    if (cpu_irq) goto irq;
-irq_return:
-    if (cpu_wait) { cpu_cycle_count++; goto dispatch; }
-    opcode = M_READ_OPCODE(PC.A);
-    PC.W.PC++;
-
-#ifdef OLDCYCLES
-    cpu_cycle_count += cpu_curr_cycle_table[opcode];
-#endif
-    (**cpu_curr_opcode_table[opcode])();
-
-    goto dispatch;
-
-/* Special cases. Since these don't happen a lot more often than they   */
-/* do happen, accessing them this way means most of the time the    */
-/* generated code is _not_ branching. Only during the special cases do  */
-/* we take the branch penalty (if there is one).            */
-
-// #ifdef E_UPDATE
-update:
-     E_UPDATE(cpu_cycle_count);
-     last_update = cpu_cycle_count;
-     next_update = last_update + cpu_update_period;
-     goto update_resume;
-// #endif
-
-#ifdef DEBUG
-debug:
-    CPU_debug();
-    goto debug_resume;
-#endif
-reset:
-    (**cpu_curr_opcode_table[256])();
-    goto dispatch;
-abort:
-    (**cpu_curr_opcode_table[257])();
-    goto dispatch;
-nmi:
-    (**cpu_curr_opcode_table[258])();
-    goto dispatch;
-irq:
-    if (P & 0x04) goto irq_return;
-    (**cpu_curr_opcode_table[259])();
-    goto dispatch;
-
+  while (!dispatch_quit) {
+    if (cpu_trace) CPU_debug();
+    if (cpu_reset) { handleSignal(RESET_OP); continue; }
+    if (cpu_abort) { handleSignal(ABORT_OP); continue; }
+    if (cpu_nmi) { handleSignal(NMI_OP); continue; }
+    if (cpu_irq) { handleSignal(IRQ_OP); continue; }
+    if (cpu_wait) { cpu_cycle_count++; continue; }
+    if (cpu_stop) continue;
+    CPU_step();
+  }
 }
 
 /* Recalculate opcode_offset based on the new processor mode */

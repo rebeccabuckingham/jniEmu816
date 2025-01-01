@@ -132,7 +132,8 @@ void CPU_debug(void) {
 
 	opcode = M_READ(PC.A);
 	mode = addrmodes[opcode];
-	printf("A=%04X X=%04X Y=%04X S=%04X D=%04X B=%02X P=%02X E=%1d  ",(int) A.W, (int) X.W,
+	printf("A=%04X X=%04X Y=%04X S=%04X D=%04X B=%02X P=%02X E=%1d  ",
+                     (int) A.W, (int) X.W,
 									   (int) Y.W, (int) S.W,
 									   (int) D.W, (int) DB,
 									   (int) P, (int) E);
