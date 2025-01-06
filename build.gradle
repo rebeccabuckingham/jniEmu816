@@ -8,30 +8,26 @@ plugins {
     id 'c'
 }
 
-mainClassName = 'emu/Main'
-
 repositories {
     mavenCentral()
 }
 
+application {
+  mainClass = 'emu/Main'
+  applicationDefaultJvmArgs = ["-Djava.library.path=" + file("${buildDir}/libs/lib65816/shared").absolutePath]
+}
+
 dependencies {
-    testImplementation 'junit:junit:4.13.2'
     implementation 'com.google.code.gson:gson:2.11.0'
 }
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
-
-application {
-    applicationDefaultJvmArgs = ["-Djava.library.path=" + file("${buildDir}/libs/lib65816/shared").absolutePath]
-}
+sourceCompatibility = 21
+targetCompatibility = 21
 
 task generateRunScript {
-    dependsOn 'classes' // Compile first
+    dependsOn 'classes'
 
     doLast {
-
-        //println("new builddir is: '" + layout.buildDirectory.get() + "'")
 
         def scriptFile = file("$buildDir/runApp.sh")
         def debugScriptFile = file("$buildDir/debugApp.sh")

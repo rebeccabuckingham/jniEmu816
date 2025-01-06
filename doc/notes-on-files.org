@@ -1,0 +1,22 @@
+Notes on files in BlueZen
+
+* clib is a 65c265-based version of lib65816, with some extras.
+* bridge.c: old main.c from bsx, implements required functions for lib65816. 
+  *note* SDL event handling happens in the EMUL_hardwareUpdate() function.
+* video.c/video.h
+  video.h: included by bridge.c and video.c, declares functions in video.c.
+  video.c: SDL emulation of VERA plus SDL handler for keyboard & mouse.
+* glue.c/glue.h
+  glue.h: only included by video.c, declares support functions needed by video.c
+    - also defines some external variables video.c needs:
+      extern bool grab_mouse;
+      extern bool warp_mode;
+      extern uint8_t activity_led;
+      extern bool disable_emu_cmd_keys;
+      extern bool enable_midline;
+      extern uint8_t machine_mhz;
+      extern bool log_video;
+  glue.c: mostly do-nothing implmentations of functions needed by video.c
+
+* *note* really should look over video.c/glue.c 
+  -> eliminate X16-isms that we don't need.

@@ -1,0 +1,7 @@
+Video subsystem for emulator:
+
+* Backing library: LWJGL 3
+* Features
+  - EGA-like text and graphics, but with more color.
+* Modes
+  - 320x200

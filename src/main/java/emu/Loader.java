@@ -17,6 +17,14 @@ import java.nio.file.Paths;
 
 public class Loader {
 
+	public static String hexDump(Bus b, int address, int count) {
+		String line = String.format("%06x:", address);
+		for (int i = 0; i < count; i++) {
+			line += String.format(" %02x", b.readMemory(address + i));
+		}
+		return line;
+	}
+
 	private static void hexDump(byte[] array, int startIndex, int count) {
 		String line = String.format("%06x:", startIndex);
 		for (int i = 0; i < count; i++) {
@@ -47,7 +55,7 @@ public class Loader {
 		int address = getAddr24(content, pointer);  pointer += 3;
 		int length = getAddr24(content, pointer);  pointer += 3;
 
-		System.out.printf("loadSegment address: %06x, length: %d\n", address, length);
+		//System.out.printf("loadSegment address: %06x, length: %d\n", address, length);
 
 		for (int i = 0; i < length; i++) {
 			bus.writeMemory(address + i,
@@ -61,7 +69,7 @@ public class Loader {
 	}
 
 
-	public static void loadPgz(String filename, Bus bus) throws IOException {
+	public static int loadPgz(String filename, Bus bus) throws IOException {
 		byte[] content = Files.readAllBytes(Paths.get(filename));
 		System.out.println("content size is: " + content.length);
 		hexDump(content, 0, 16);
@@ -71,24 +79,42 @@ public class Loader {
 		}
 
 		int pointer = 1;
+		int executionAddress = 0;
 
 		int segment = 0;
 		while (pointer < content.length) {
+			int tmpPointer = pointer;
+			int address = getAddr24(content, tmpPointer);  tmpPointer += 3;
+			int length = getAddr24(content, tmpPointer);  tmpPointer += 3;
+
+			System.out.printf("loadSegment address: %06x, length: %d\n", address, length);
+			if (length == 0) {
+				executionAddress = address;
+			}
+
 			pointer = loadSegment(content, pointer, bus);
 			System.out.println("after loading segment " + segment + ", pointer is now: " + pointer);
 			segment++;
 		}
+
+		System.out.println("reset vector: " + hexDump(bus, 0xfffc, 2));
+
+		return executionAddress;
 	}
 
-	public static void loadPrg(String filename, Bus bus) throws IOException {
+	public static int loadPrg(String filename, Bus bus) throws IOException {
 		byte[] content = Files.readAllBytes(Paths.get(filename));
 		System.out.println("content size is: " + content.length);
 		hexDump(content, 0, 16);
 
-		int address = getAddr16(content, 0);
+		int baseAddress = getAddr16(content, 0);
+		int address = baseAddress;
 		for (int i = 2; i < content.length; i++) {
 			bus.writeMemory(address, content[i]);
 			address++;
 		}
+
+		return address;
 	}
+
 }

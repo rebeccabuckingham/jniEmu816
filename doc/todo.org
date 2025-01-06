@@ -1,15 +1,27 @@
+* TODO rename lib65816 library and directory
+  - we're combining lib65816 functionality with custom stuff, so it's a misnomer now.
+    -> build.gradle
+    -> Main.java
+
+* TODO really think through the whole VERA thing before going down that path.
+  - there's a lot of X16-degunking that would need to be done.
+  - could always use libgdx to make something else.
+
 * Update lib65816 with non-65c265 changes from bsx.
-** TODO Need to handle runAddress.  
-  - Should default to reset vector unless specified on command line.
-** DONE Allow multiple files to be loaded at the command line.
+** TODO Create a TCP/IP based ConsoleDevice
+  - need an option to specify the port, maybe default to 6510.
+  - need an option to wait for connection before starting CPU.
 ** TODO MEM_readMem() and MEM_writeMem() should use *local* memory 
   - video memory accesses stay in C land.
   - java-provided peripherals will need to register with the C
     library to be put in an exception list.
-** TODO Create a TCP/IP based ConsoleDevice
-  - need an option to specify the port, maybe default to 6510.
-  - need an option to wait for connection before starting CPU.
+** TODO Port video code from bsx emulator.
+** TODO Need to handle runAddress.  
+  - Should default to reset vector unless specified on command line.
+** DONE Allow multiple files to be loaded at the command line.
 ** TODO Also create a TCP/IP based debugger.
   - same options as ConsoleDevice.
   - default port 6511.
-** TODO Port video code from bsx emulator.
+
+
+* see video.org
