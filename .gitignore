@@ -36,4 +36,11 @@ hs_err_pid*
 
 # Ignore Gradle build output directory
 build
+
+# vs code
 *.code-workspace
+
+# eclipse
+.classpath
+.project
+.settings/
