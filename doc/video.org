@@ -2,6 +2,11 @@ Video subsystem for emulator:
 
 * Backing library: LWJGL 3
 * Features
-  - EGA-like text and graphics, but with more color.
-* Modes
-  - 320x200
+** Text Mode:     VGA 720x400x256 [80x25, using 9x16 font]
+    -> going to bake ANSI emulation into the "hardware"
+** Graphics Mode:     360x200x128 [7 bits/pixel - each plane takes 9000 bytes]
+    -> eventually should include sprites, or a blitter in "hardware"
+
+Audio subsystem for emulator:
+* Backing library: LWJGL 3
+

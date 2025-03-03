@@ -8,6 +8,7 @@
   - could always use libgdx to make something else.
 
 * Update lib65816 with non-65c265 changes from bsx.
+** TODO hardwareUpdate() should probably trigger at 60hz.
 ** TODO Create a TCP/IP based ConsoleDevice
   - need an option to specify the port, maybe default to 6510.
   - need an option to wait for connection before starting CPU.
@@ -25,3 +26,11 @@
 
 
 * see video.org
+* Overall goals for project:
+  (1) Create a LWJGL-based video/audio subsystem.
+  (2) Move away from lib65816 and use Java-native emulation.
+  (3) Want to build a Forth (based on Jones Forth), that maybe could even be used as the OS.
+      *or* a BASIC, not sure.  I could build the 65816 BASIC and release it as GPL.
+      another possibility would be a FPC compatible-ish Pascal.  Not sure if native or p-code.
+  (4) I'd like an OS to use the same jump table vectors as the C64, unless there are other
+      vectors on the 65816 that preclude it.
